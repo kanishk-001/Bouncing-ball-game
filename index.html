@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Ball Game</title>
+    <style>
+        #game-container {
+            width: 400px;
+            height: 300px;
+            border: 2px solid black;
+            position: relative;
+            overflow: hidden;
+            margin: 20px auto;
+            background-color: #f0f0f0;
+        }
+        #ball {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+        }
+        #paddle {
+            width: 80px;
+            height: 10px;
+            background-color: blue;
+            position: absolute;
+            bottom: 0;
+            left: 160px; /* Center the paddle initially */
+        }
+        #controls, #score, #game-over {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        button, select {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #game-over {
+            color: red;
+            font-weight: bold;
+            display: none; /* Hidden initially */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="ball"></div>
+        <div id="paddle"></div>
+    </div>
+    
+    <div id="controls">
+        <button id="play-btn">Play</button>
+        <button id="stop-btn">Stop</button>
+        <button id="reset-btn">Reset</button>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
+
+    <div id="score">Score: 0</div>
+    <div id="game-over">Game Over! Press Reset to Play Again</div>
+
+    <script>
+        const ball = document.getElementById('ball');
+        const paddle = document.getElementById('paddle');
+        const container = document.getElementById('game-container');
+        const playBtn = document.getElementById('play-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const difficultySelect = document.getElementById('difficulty');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverMessage = document.getElementById('game-over');
+
+        let x = 0;
+        let y = 0;
+        let dx = 2;
+        let dy = 2;
+        let score = 0;
+        let animationId;
+        let isPlaying = false;
+
+        // Paddle position
+        let paddleX = 160; // Initial paddle position
+        const paddleWidth = 80;
+
+        // Adjust speed based on difficulty
+        function setDifficulty() {
+            const difficulty = difficultySelect.value;
+            if (difficulty === "easy") {
+                dx = 2;
+                dy = 2;
+            } else if (difficulty === "medium") {
+                dx = 3;
+                dy = 3;
+            } else if (difficulty === "hard") {
+                dx = 4;
+                dy = 4;
+            }
+        }
+
+        // Move paddle with left and right arrow keys
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && paddleX > 0) {
+                paddleX -= 20; // Move left
+            } else if (e.key === 'ArrowRight' && paddleX < container.offsetWidth - paddleWidth) {
+                paddleX += 20; // Move right
+            }
+            paddle.style.left = paddleX + 'px';
+        });
+
+        function animate() {
+            if (!isPlaying) return;
+
+            x += dx;
+            y += dy;
+
+            // Bounce off the walls
+            if (x + ball.offsetWidth > container.offsetWidth || x < 0) {
+                dx = -dx;
+            }
+
+            if (y < 0) {
+                dy = -dy;
+            }
+
+            // Check for collision with the paddle
+            if (y + ball.offsetHeight >= container.offsetHeight - paddle.offsetHeight) {
+                // Check if the ball is within the paddle's range
+                if (x + ball.offsetWidth > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy; // Bounce the ball
+                    updateScore(); // Increase the score
+                } else {
+                    gameOver(); // End the game if ball misses the paddle
+                    return;
+                }
+            }
+
+            ball.style.left = x + 'px';
+            ball.style.top = y + 'px';
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Update score
+        function updateScore() {
+            score += 1;
+            scoreDisplay.textContent = "Score: " + score;
+        }
+
+        // Show game over message and stop the game
+        function gameOver() {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            gameOverMessage.style.display = 'block';
+        }
+
+        // Play button
+        playBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                setDifficulty(); // Set speed based on difficulty level
+                isPlaying = true;
+                gameOverMessage.style.display = 'none'; // Hide game over message
+                animate();
+            }
+        });
+
+        // Stop button
+        stopBtn.addEventListener('click', () => {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            x = 0;
+            y = 0;
+            setDifficulty(); // Reset speed based on selected difficulty level
+            score = 0;
+            paddleX = 160; // Reset paddle position
+            ball.style.left = x + 'px';
+            ball.style.top = y + 'px';
+            paddle.style.left = paddleX + 'px';
+            scoreDisplay.textContent = "Score: " + score;
+            gameOverMessage.style.display = 'none'; // Hide game over message
+        });
+    </script>
+
+</body>
+</html>
