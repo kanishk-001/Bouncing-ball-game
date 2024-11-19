@@ -78,15 +78,14 @@
         const scoreDisplay = document.getElementById('score');
         const gameOverMessage = document.getElementById('game-over');
 
-        let x = 0;
-        let y = 0;
-        let dx = 2;
-        let dy = 2;
-        let score = 0;
+        let x = 0; // Ball position X
+        let y = 0; // Ball position Y
+        let dx = 2; // Ball speed X
+        let dy = 2; // Ball speed Y
+        let score = 0; // Player score
         let animationId;
         let isPlaying = false;
 
-        // Paddle position
         let paddleX = 160; // Initial paddle position
         const paddleWidth = 80;
 
@@ -94,103 +93,104 @@
         function setDifficulty() {
             const difficulty = difficultySelect.value;
             if (difficulty === "easy") {
-                dx = 2;
-                dy = 2;
+                dx = 2; dy = 2;
             } else if (difficulty === "medium") {
-                dx = 3;
-                dy = 3;
+                dx = 3; dy = 3;
             } else if (difficulty === "hard") {
-                dx = 4;
-                dy = 4;
+                dx = 4; dy = 4;
             }
         }
 
-        // Move paddle with left and right arrow keys
+        // Move paddle with arrow keys
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && paddleX > 0) {
-                paddleX -= 20; // Move left
+                paddleX -= 20;
             } else if (e.key === 'ArrowRight' && paddleX < container.offsetWidth - paddleWidth) {
-                paddleX += 20; // Move right
+                paddleX += 20;
             }
             paddle.style.left = paddleX + 'px';
         });
 
+        // Animate the ball movement
         function animate() {
             if (!isPlaying) return;
 
             x += dx;
             y += dy;
 
-            // Bounce off the walls
-            if (x + ball.offsetWidth > container.offsetWidth || x < 0) {
-                dx = -dx;
-            }
+            // Bounce off walls
+            if (x + ball.offsetWidth > container.offsetWidth || x < 0) dx = -dx;
+            if (y < 0) dy = -dy;
 
-            if (y < 0) {
-                dy = -dy;
-            }
-
-            // Check for collision with the paddle
+            // Check paddle collision
             if (y + ball.offsetHeight >= container.offsetHeight - paddle.offsetHeight) {
-                // Check if the ball is within the paddle's range
                 if (x + ball.offsetWidth > paddleX && x < paddleX + paddleWidth) {
                     dy = -dy; // Bounce the ball
-                    updateScore(); // Increase the score
+                    updateScore(); // Update score
                 } else {
-                    gameOver(); // End the game if ball misses the paddle
+                    gameOver(); // Ball missed the paddle
                     return;
                 }
             }
 
             ball.style.left = x + 'px';
             ball.style.top = y + 'px';
-
             animationId = requestAnimationFrame(animate);
         }
 
-        // Update score
+        // Update score and send to Lambda for tracking
         function updateScore() {
             score += 1;
             scoreDisplay.textContent = "Score: " + score;
+
+            // Send updated score to AWS Lambda for tracking (simulation)
+            // fetch('https://your-lambda-endpoint', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ score }),
+            // });
         }
 
-        // Show game over message and stop the game
+        // Stop the game and display game over
         function gameOver() {
             isPlaying = false;
             cancelAnimationFrame(animationId);
             gameOverMessage.style.display = 'block';
+
+            // Send game-over status to Amazon Q (simulation)
+            // fetch('https://your-amazon-q-endpoint', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ event: 'game_over', score }),
+            // });
         }
 
-        // Play button
+        // Play button functionality
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
-                setDifficulty(); // Set speed based on difficulty level
+                setDifficulty(); // Adjust difficulty
                 isPlaying = true;
-                gameOverMessage.style.display = 'none'; // Hide game over message
+                gameOverMessage.style.display = 'none';
                 animate();
             }
         });
 
-        // Stop button
+        // Stop button functionality
         stopBtn.addEventListener('click', () => {
             isPlaying = false;
             cancelAnimationFrame(animationId);
         });
 
-        // Reset button
+        // Reset button functionality
         resetBtn.addEventListener('click', () => {
             isPlaying = false;
             cancelAnimationFrame(animationId);
-            x = 0;
-            y = 0;
-            setDifficulty(); // Reset speed based on selected difficulty level
-            score = 0;
-            paddleX = 160; // Reset paddle position
+            x = 0; y = 0;
+            setDifficulty(); // Reset difficulty
+            score = 0; paddleX = 160;
             ball.style.left = x + 'px';
             ball.style.top = y + 'px';
             paddle.style.left = paddleX + 'px';
             scoreDisplay.textContent = "Score: " + score;
-            gameOverMessage.style.display = 'none'; // Hide game over message
+            gameOverMessage.style.display = 'none';
         });
     </script>
 
